@@ -1,4 +1,4 @@
-import { Alchemy, Network } from 'alchemy-sdk';
+import { Alchemy, Network} from 'alchemy-sdk';
 import { useEffect, useState } from 'react';
 
 import './App.css';
@@ -19,18 +19,50 @@ const settings = {
 //   https://docs.alchemy.com/reference/alchemy-sdk-api-surface-overview#api-surface
 const alchemy = new Alchemy(settings);
 
-function App() {
+function App(hash) {
   const [blockNumber, setBlockNumber] = useState();
+  const [blockInfo, setBlockInfo] = useState({});
+  const [transacHash, setTransacHash] = useState('');
+  const [transacReciept, setTransacReciept] = useState(null);
+  // const [blockTransact, setBlockTransact] = useState({});
 
   useEffect(() => {
     async function getBlockNumber() {
       setBlockNumber(await alchemy.core.getBlockNumber());
     }
-
     getBlockNumber();
-  });
 
-  return <div className="App">Block Number: {blockNumber}</div>;
+    async function getBlockInfo() {
+    setBlockInfo(await alchemy.core.getBlock(blockNumber));
+  }
+  getBlockInfo(blockNumber);
+
+    // async function getBlockTransact() {
+    //   setBlockTransact(await alchemy.core.getBlockWithTransactions(blockNumber));
+    // }
+    // getBlockTransact();
+
+    async function getTransacHash()
+    {
+      if (transacHash)
+      {
+      setTransacReciept(await alchemy.core.getTransactionReceipt(transacHash));
+      }
+    }
+    getTransacHash();
+  }, [blockNumber, transacHash]);
+  const handleInputChange = (evt) => {
+    setTransacHash(evt.target.value);
+  }
+
+  return <div className="App">
+    <div><b>Block Number</b><br></br>{blockNumber}</div>
+    <div><b>Block Hash</b><br></br>{blockInfo.hash}</div>
+    <div><b>Gas Limit</b><br></br>{parseInt(blockInfo.gasLimit)} gas</div>
+    <div><b>Gas Used</b><br></br>{parseInt(blockInfo.gasUsed)}</div>
+    <div><b>Miner</b><br></br>{blockInfo.miner}</div>
+    <div><b>Reciept</b><br></br><input placeholder='Enter the transaction hash' defaultValue={transacHash} onChange={handleInputChange}></input><br></br>{transacReciept.from}</div>
+    </div>
 }
 
 export default App;
